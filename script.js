@@ -6,13 +6,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const filterButton = document.getElementById("filter-button");
     const exportButton = document.getElementById("export-button");
     const totalAmount = document.getElementById("total-amount");
+    const clearHistoryButton = document.getElementById("clear-history-button");
 
     let records = JSON.parse(localStorage.getItem("fuelRecords")) || [];
 
+    // === Guardar registros ===
     function saveRecords() {
         localStorage.setItem("fuelRecords", JSON.stringify(records));
     }
 
+    // === Renderizar tabla ===
     function renderTable(filtered = records) {
         tableBody.innerHTML = "";
         let total = 0;
@@ -32,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
         totalAmount.textContent = `$${total.toLocaleString("es-CL")}`;
     }
 
+    // === Filtrar registros ===
     function filterRecords() {
         const type = filterType.value;
         const selectedVehicle = vehicleFilter.value;
@@ -46,8 +50,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 const diff = (now - recordDate) / (1000 * 60 * 60 * 24);
                 match = diff <= 7 && diff >= 0;
             }
-            if (type === "month") match = recordDate.getMonth() === now.getMonth() && recordDate.getFullYear() === now.getFullYear();
-            if (type === "year") match = recordDate.getFullYear() === now.getFullYear();
+            if (type === "month")
+                match = recordDate.getMonth() === now.getMonth() && recordDate.getFullYear() === now.getFullYear();
+            if (type === "year")
+                match = recordDate.getFullYear() === now.getFullYear();
 
             if (selectedVehicle !== "all") match = match && record.vehicle === selectedVehicle;
 
@@ -57,6 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderTable(filtered);
     }
 
+    // === Registrar nueva carga ===
     form.addEventListener("submit", e => {
         e.preventDefault();
         const newRecord = {
@@ -71,8 +78,10 @@ document.addEventListener("DOMContentLoaded", () => {
         form.reset();
     });
 
+    // === Aplicar filtros ===
     filterButton.addEventListener("click", filterRecords);
 
+    // === Exportar a CSV ===
     exportButton.addEventListener("click", () => {
         let csv = "Fecha,Vehículo,Litros,Monto\n";
         records.forEach(r => {
@@ -86,5 +95,17 @@ document.addEventListener("DOMContentLoaded", () => {
         link.click();
     });
 
+    // === Eliminar historial ===
+    clearHistoryButton.addEventListener("click", () => {
+        const confirmDelete = confirm("¿Seguro que deseas eliminar todo el historial de cargas?");
+        if (confirmDelete) {
+            localStorage.removeItem("fuelRecords");
+            records = [];
+            renderTable();
+            alert("✅ Historial eliminado correctamente.");
+        }
+    });
+
+    // === Inicializar ===
     renderTable();
 });
